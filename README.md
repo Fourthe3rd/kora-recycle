@@ -1,232 +1,145 @@
-♻️ Kora-Recycle
-The Garbage Collector for Solana Infrastructure
-<p align="center"> <img src="kora-dashboard/public/dashboard.png" alt="Kora Dashboard Preview" width="85%" /> </p>
+# ♻️ Kora-Recycle
+> **The Garbage Collector for Solana Infrastructure**
 
-Kora-Recycle is an automated infrastructure sidecar that reclaims lost SOL from dormant Solana accounts for Kora Node operators.
-Built with Jito Bundles, Hexagonal Architecture, and a real-time Command Console.
+![Dashboard Preview](kora-dashboard/public/Dashboard.png)
 
-📌 Table of Contents
+**Kora-Recycle** is an automated infrastructure sidecar that reclaims lost SOL from dormant accounts for Kora Node operators. Powered by **Jito Bundles**, **Hexagonal Architecture**, and a real-time **Command Console**.
 
-The Problem
+---
 
-The Solution
+## 📉 The Problem
+Running a Solana Node involves managing thousands of user accounts. When users abandon sessions or ephemeral sub-accounts ("dust"), they leave behind Rent-Exempt SOL (approx. 0.002 SOL per account).
+* **The Cost:** 1,000 dormant accounts = ~2 SOL locked forever.
+* **The Risk:** Manually closing accounts is dangerous (accidental user deletion) and slow.
 
-Key Features
+## 🛡️ The Solution
+Kora-Recycle is a "set-and-forget" backend service that acts as a localized Garbage Collector.
+1.  **Snoops** the ledger for dormant accounts.
+2.  **Judges** them against strict safety policies (Zero-Knowledge proof of emptiness).
+3.  **Reaps** them using **Atomic Jito Bundles**, returning the rent deposit directly to the operator's wallet.
 
-Architecture
+---
 
-Technology Stack
+## 🏗️ Architecture
+This project is built using **Hexagonal Architecture (Ports & Adapters)** to ensure domain logic is isolated from the blockchain layer.
 
-Getting Started
-
-Usage Guide
-
-Core Components
-
-Hackathon Notes
-
-Screenshots
-
-📉 The Problem
-
-Operating a Solana node at scale involves managing thousands of transient accounts.
-When sessions end or ephemeral sub-accounts (“dust”) are abandoned, rent-exempt SOL becomes permanently locked.
-
-💸 Cost: 1,000 dormant accounts ≈ 2 SOL locked
-
-⚠️ Risk: Manual cleanup is slow and error-prone
-
-🧨 Danger: Accidental deletion of active user accounts
-
-Once rent is locked, there is no native garbage collector.
-
-🛡️ The Solution
-
-Kora-Recycle is a set-and-forget infrastructure service that safely reclaims abandoned rent deposits.
-
-How it works
-
-Snoops the ledger for dormant, operator-owned accounts
-
-Judges them against strict safety policies
-
-Reaps them via atomic Jito bundles, returning SOL directly to the operator
-
-✔️ All operations are all-or-nothing
-✔️ No partial reclaims
-✔️ No gas waste
-✔️ No user risk
-
-✨ Key Features
-
-♻️ Automated SOL reclamation
-
-🧠 Policy-driven safety engine
-
-⚛️ Atomic Jito MEV bundles
-
-📊 Real-time dashboard & metrics
-
-🧪 Built-in simulation engine
-
-🧱 Hexagonal (Ports & Adapters) architecture
-
-🏗️ Architecture
-
-Kora-Recycle follows Hexagonal Architecture to isolate domain logic from blockchain and infrastructure concerns.
-
+```mermaid
 graph TD
     User[Operator Console] -->|/seed 4| API[Express API]
     API -->|Commands| Domain
-
+    
     subgraph "Core Domain"
-        Snooper[Ledger Snooper]
-        Judge[Policy Judge]
+        Judge[The Judge Policy]
+        Snooper[Ledger Scanner]
     end
-
+    
     subgraph "Infrastructure Adapters"
         RPC[Solana RPC]
-        DB[(SQLite)]
+        DB[(SQLite Persistence)]
         Jito[Jito Block Engine]
     end
 
-    Snooper -->|Scan| RPC
-    Snooper -->|Persist| DB
+    Snooper -->|Fetch| RPC
+    Snooper -->|Write| DB
     Judge -->|Validate| DB
-    Judge -->|Execute| Jito
+    Judge -->|Reclaim| Jito
+Backend: TypeScript, Node.js, Express, SQLite, Better-SQLite3.
 
-🧰 Technology Stack
-Backend
+Blockchain: Solana Web3.js, Jito SDK (MEV Bundles).
 
-TypeScript
+Frontend: React, Vite, TailwindCSS, Framer Motion.
 
-Node.js + Express
-
-SQLite (better-sqlite3)
-
-Solana Web3.js
-
-Jito SDK (MEV Bundles)
-
-Frontend
-
-React
-
-Vite
-
-TailwindCSS
-
-Framer Motion
-
-🚀 Getting Started
+🚀 Getting Started (For Judges)
 Prerequisites
-
-Node.js v18+
+Node.js (v18+)
 
 npm or yarn
 
-Solana Wallet (Operator Keypair)
+A Solana Wallet (Private Key) for the Operator.
 
-1️⃣ Backend Setup (Infrastructure Layer)
-git clone https://github.com/fourthe3rd/kora-recycle.git
+1. Backend Setup (The Infrastructure)
+The backend handles the scanning, database management, and Jito bundling.
+
+Bash
+
+# Clone the repo
+git clone [https://github.com/fourthe3rd/kora-recycle.git](https://github.com/fourthe3rd/kora-recycle.git)
 cd kora-recycle
+
+# Install dependencies
 npm install
 
-Environment Configuration
+# Configure Environment
+# Copy the example file and add your keys
 cp .env.example .env
+Update .env with your keys:
 
+Code snippet
 
-Update .env:
+SOLANA_RPC_URL=[https://api.devnet.solana.com](https://api.devnet.solana.com)
+KORA_FEE_PAYER=Your_Public_Key
+KORA_OPERATOR_KEY=Your_Private_Key_Base58_String
+2. Frontend Setup (The Command Center)
+The dashboard provides real-time visualization and control.
 
-SOLANA_RPC_URL=https://api.devnet.solana.com
-KORA_FEE_PAYER=YOUR_PUBLIC_KEY
-KORA_OPERATOR_KEY=YOUR_PRIVATE_KEY_BASE58
+Bash
 
-2️⃣ Frontend Setup (Command Center)
+# Open a new terminal
 cd kora-dashboard
-npm install
-npm run dev
 
+# Install dependencies
+npm install
+
+# Start the UI
+npm run dev
 🎮 Usage Guide
 Step 1: Start the Backend
+Bash
+
+# From the root directory
 npx ts-node src/cmd/server/main.ts
-
-
-Expected output:
-
-📡 Kora Command Uplink: http://localhost:3001
+You should see: 📡 Kora Command Uplink: http://localhost:3001
 
 Step 2: Open the Dashboard
+Go to http://localhost:5173 in your browser. You will see the Live Activity Stream and Financial Metrics.
 
-Navigate to:
+Step 3: Run a Simulation (The Magic)
+Kora-Recycle includes a simulation engine to demonstrate the garbage collection process without waiting for organic user churn.
 
-http://localhost:5173
+In the Dashboard Terminal (bottom right), type:
 
-
-You’ll see:
-
-Live Activity Stream
-
-Total SOL Reclaimed
-
-Bundle Execution Logs
-
-Step 3: Run a Simulation
-
-In the Dashboard Terminal, enter:
+Bash
 
 /seed 4
+Watch: The system will generate 4 "trash" accounts on Devnet.
 
+Wait: Within 10-20 seconds, the Snooper will detect them.
 
-What happens:
+Profit: The Reaper will bundle them via Jito, and your Total Saved counter will increase.
 
-4 disposable accounts are created (Devnet)
+🧪 Key Components
+🕵️ The Snooper (Scanner)
+Runs on a configurable interval (default: 10s). It scans the cursor position on the ledger to find accounts created by the operator that have no active session tokens.
 
-Snooper detects them
+⚖️ The Judge (Policy Engine)
+Enforces the "Safety First" rule. An account is only marked SAFE_TO_REAP if:
 
-Judge validates safety
+It is owned by the specific Program ID.
 
-Reaper bundles & closes them
+It has 0 active lamports (excluding rent).
 
-💰 Rent is reclaimed
+It has been dormant for > X blocks.
 
-🧪 Core Components
-🕵️ Snooper (Scanner)
+💀 The Reaper (Jito Integration)
+Constructs an atomic transaction bundle:
 
-Periodic ledger scan (default: 10s)
+Instruction 1..N: Close Account (Transfer rent to Operator).
 
-Identifies operator-created dormant accounts
-
-Persists candidates in SQLite
-
-⚖️ Judge (Policy Engine)
-
-Marks an account SAFE_TO_REAP only if:
-
-Owned by the correct Program ID
-
-Zero active lamports (excluding rent)
-
-Dormant for > X blocks
-
-📍 Location: src/internal/domain/services/judge.ts
-
-💀 Reaper (Jito Integration)
-
-Builds atomic transaction bundles
-
-Closes N accounts
-
-Adds validator tip
-
-Guarantees all-or-nothing execution
-
-📍 Location: src/internal/infrastructure/jito
+Instruction N+1: Jito Tip (Payment to validator). This ensures that either ALL accounts are reclaimed, or NONE are, preventing partial failures and wasted gas.
 
 🏆 Hackathon Notes
+Jito Integration: Located in src/internal/infrastructure/jito.
 
-Jito Integration: src/internal/infrastructure/jito
+Safety Logic: Located in src/internal/domain/services/judge.ts.
 
-Safety Logic: src/internal/domain/services/judge.ts
-
-Simulation Engine: /seed command in trash_service.ts
+Simulation: The /seed command is handled by trash_service.ts.
